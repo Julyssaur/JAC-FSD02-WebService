@@ -1,5 +1,7 @@
 package com.example.restservice.service;
 
+import com.example.restservice.exception.EmployeeExistException;
+import com.example.restservice.exception.EmployeeNotFoundException;
 import com.example.restservice.model.Address;
 import com.example.restservice.model.Employee;
 
@@ -7,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class EmployeeService {
+
     static List<Employee> employees = new ArrayList<>();
 
     public List<Employee> getAllEmployees(){
@@ -27,7 +30,48 @@ public class EmployeeService {
         return employees;
     }
 
+    public Employee getById(int id){
+        Employee employee = findById(id);
+        if (employee != null){
+            return employee;
+        }
+        throw new EmployeeNotFoundException("Employee with " + id + "not found");
+    }
+
+    public Employee getByAddressPostalCode(String addressPostalCode){
+        Employee fetchedEmployee = this.findByAddressPostalCode(addressPostalCode);
+        if (fetchedEmployee != null){
+            return fetchedEmployee;
+        }
+        throw new EmployeeNotFoundException("Employee with " + addressPostalCode + "not found");
+    }
+
     public void addEmployee(Employee employee){
-        employees.add(employee);
+        Employee fetchedEmployee = this.findByAddressPostalCode(employee.getAddress().getPostalCode());
+        if (fetchedEmployee == null){
+            employees.add(employee);
+        }
+        throw new EmployeeExistException("Employee who lives in this postal code" + employee.getAddress().getPostalCode() + " already exists");
+    }
+
+    public void updateEmployee(int id, Employee employee){
+        Employee fetchedEmployee = this.findById(id);
+        if (fetchedEmployee != null){
+            fetchedEmployee = employee;
+        }
+    }
+
+    public void deleteEmployee(int id){
+        Employee fetchedEmployee = this.findById(id);
+        if (fetchedEmployee != null){
+        }
+    }
+
+    private Employee findById(int id){
+        return employees.stream().filter(employee -> employee.getId() == id).findFirst().get();
+    }
+
+    private Employee findByAddressPostalCode(String addressPostalCode){
+        return employees.stream().filter(employee -> employee.getAddress().getPostalCode().equals(addressPostalCode)).findFirst().get();
     }
 }
